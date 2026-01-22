@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="layout">
+    <aside class="sidebar">
+        <ul class="sidebar-menu">
+            <li><a href="{{ url_for('admin_dashboard') }}" class="active">
+                <span>🏠</span> Home
+            </a></li>
+            <li><a href="{{ url_for('admin_bookings') }}">
+                <span>📅</span> Bookings
+            </a></li>
+            <li><a href="{{ url_for('admin_cabins') }}">
+                <span>🏡</span> Cabins
+            </a></li>
+            <li><a href="{{ url_for('admin_users') }}">
+                <span>👥</span> Users
+            </a></li>
+            <li><a href="{{ url_for('logout') }}">
+                <span>🚪</span> Logout
+            </a></li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <div style="margin-bottom: 20px;">
+            <h1 style="font-size: 28px; color: #1f2937; margin-bottom: 5px;">Dashboard</h1>
+            <div style="display: flex; gap: 10px; font-size: 14px;">
+                <span style="color: #6b7280;">Last 7 days</span>
+                <span style="background-color: #6366f1; color: white; padding: 2px 10px; border-radius: 12px; font-size: 12px;">Last 30 days</span>
+                <span style="color: #6b7280;">Last 90 days</span>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon blue">📅</div>
+                <div class="stat-info">
+                    <h3>BOOKINGS</h3>
+                    <div class="value">{{ total_bookings }}</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon green">💰</div>
+                <div class="stat-info">
+                    <h3>SALES</h3>
+                    <div class="value">${{ "%.2f"|format(total_sales) }}</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon purple">✓</div>
+                <div class="stat-info">
+                    <h3>CHECK INS</h3>
+                    <div class="value">{{ check_ins }}</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon yellow">📊</div>
+                <div class="stat-info">
+                    <h3>OCCUPANCY RATE</h3>
+                    <div class="value">{{ "%.0f"|format(occupancy_rate) }}%</div>
+                </div>
+            </div>
+        </div>
+
+        {% if todays_arrivals %}
+        <div class="table-container">
+            <div class="table-header">
+                <h2>Today's Arrivals</h2>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>STATUS</th>
+                        <th>GUEST</th>
+                        <th>CABIN</th>
+                        <th>NIGHTS</th>
+                        <th>ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for booking in todays_arrivals %}
+                    <tr>
+                        <td><span class="badge badge-{{ booking['status'] }}">{{ booking['status'].upper() }}</span></td>
+                        <td>
+                            <div>{{ booking['guest_name'] }}</div>
+                            <div style="font-size: 12px; color: #6b7280;">{{ booking['guest_email'] }}</div>
+                        </td>
+                        <td>{{ booking['cabin_name'] }}</td>
+                        <td>{{ booking['num_nights'] }} nights</td>
+                        <td>
+                            <a href="{{ url_for('admin_booking_detail', booking_id=booking['id']) }}" class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;">CHECK IN</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        <div class="grid grid-2">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Stay duration summary</h2>
+                </div>
+                <div class="card-body">
+                    <div style="text-align: center; padding: 40px; color: #6b7280;">
+                        <div style="font-size: 48px; margin-bottom: 20px;">📊</div>
+                        <p>Stay duration chart would be displayed here</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>Recent Bookings</h2>
+                </div>
+                <div class="card-body" style="padding: 0;">
+                    <table>
+                        <tbody>
+                            {% for booking in recent_bookings %}
+                            <tr>
+                                <td>
+                                    <span class="badge badge-{{ booking['status'] }}">{{ booking['status'].upper() }}</span>
+                                </td>
+                                <td>{{ booking['cabin_name'] }}</td>
+                                <td>${{ "%.2f"|format(booking['total_price']) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

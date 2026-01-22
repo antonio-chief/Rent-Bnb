@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="layout">
+    <aside class="sidebar">
+        <ul class="sidebar-menu">
+            <li><a href="{{ url_for('admin_dashboard') }}">
+                <span>🏠</span> Home
+            </a></li>
+            <li><a href="{{ url_for('admin_bookings') }}">
+                <span>📅</span> Bookings
+            </a></li>
+            <li><a href="{{ url_for('admin_cabins') }}">
+                <span>🏡</span> Cabins
+            </a></li>
+            <li><a href="{{ url_for('admin_users') }}" class="active">
+                <span>👥</span> Users
+            </a></li>
+            <li><a href="{{ url_for('logout') }}">
+                <span>🚪</span> Logout
+            </a></li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <div class="table-container">
+            <div class="table-header">
+                <h2>All Users</h2>
+            </div>
+            
+            {% if users %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>NAME</th>
+                        <th>EMAIL</th>
+                        <th>PHONE</th>
+                        <th>ROLE</th>
+                        <th>JOINED</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user['name'] }}</td>
+                        <td>{{ user['email'] }}</td>
+                        <td>{{ user['phone'] or '-' }}</td>
+                        <td>
+                            <span class="badge badge-{{ 'checked-in' if user['role'] == 'admin' else 'unconfirmed' }}">
+                                {{ user['role'].upper() }}
+                            </span>
+                        </td>
+                        <td style="font-size: 13px; color: #6b7280;">{{ user['created_at'] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div style="padding: 40px; text-align: center; color: #6b7280;">
+                No users found
+            </div>
+            {% endif %}
+        </div>
+    </main>
+</div>
+{% endblock %}

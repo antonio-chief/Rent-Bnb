@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="layout">
+    <aside class="sidebar">
+        <ul class="sidebar-menu">
+            <li><a href="{{ url_for('client_dashboard') }}">
+                <span>🏠</span> Home
+            </a></li>
+            <li><a href="{{ url_for('client_cabins') }}">
+                <span>🏡</span> Browse Cabins
+            </a></li>
+            <li><a href="{{ url_for('client_bookings') }}" class="active">
+                <span>📅</span> My Bookings
+            </a></li>
+            <li><a href="{{ url_for('logout') }}">
+                <span>🚪</span> Logout
+            </a></li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <div class="table-container">
+            <div class="table-header">
+                <h2>My Bookings</h2>
+            </div>
+            
+            {% if bookings %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>CABIN</th>
+                        <th>DATES</th>
+                        <th>GUESTS</th>
+                        <th>STATUS</th>
+                        <th>TOTAL</th>
+                        <th>ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for booking in bookings %}
+                    <tr>
+                        <td>
+                            <div style="display: flex; gap: 15px; align-items: center;">
+                                {% if booking['image_url'] %}
+                                <img src="{{ booking['image_url'] }}" alt="{{ booking['cabin_name'] }}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px;">
+                                {% else %}
+                                <div style="width: 60px; height: 60px; background-color: #e5e7eb; border-radius: 4px; display: flex; align-items: center; justify-content: center;">🏡</div>
+                                {% endif %}
+                                <div>
+                                    <div style="font-weight: 600;">{{ booking['cabin_name'] }}</div>
+                                    <div style="font-size: 12px; color: #6b7280;">Cabin #{{ booking['cabin_number'] }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="font-size: 13px;">
+                                {% set check_in_date = booking['check_in'].split()[0] if ' ' in booking['check_in'] else booking['check_in'] %}
+                                {% set check_out_date = booking['check_out'].split()[0] if ' ' in booking['check_out'] else booking['check_out'] %}
+                                {{ check_in_date }} → {{ check_out_date }}
+                            </div>
+                            <div style="font-size: 12px; color: #6b7280;">{{ booking['num_nights'] }} nights</div>
+                        </td>
+                        <td>{{ booking['num_guests'] }} guests</td>
+                        <td>
+                            <span class="badge badge-{{ booking['status'] }}">
+                                {{ booking['status'].replace('_', ' ').upper() }}
+                            </span>
+                        </td>
+                        <td style="font-weight: 600;">${{ "%.2f"|format(booking['total_price']) }}</td>
+                        <td>
+                            <a href="{{ url_for('client_booking_detail', booking_id=booking['id']) }}" class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;">View</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div style="padding: 60px 40px; text-align: center; color: #6b7280;">
+                <div style="font-size: 64px; margin-bottom: 20px;">📅</div>
+                <h3 style="font-size: 20px; margin-bottom: 10px; color: #1f2937;">No bookings yet</h3>
+                <p style="margin-bottom: 20px;">Start exploring our beautiful cabins and make your first reservation!</p>
+                <a href="{{ url_for('client_cabins') }}" class="btn btn-primary">Browse Cabins</a>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+</div>
+{% endblock %}

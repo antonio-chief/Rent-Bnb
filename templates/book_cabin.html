@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="layout">
+    <aside class="sidebar">
+        <ul class="sidebar-menu">
+            <li><a href="{{ url_for('client_dashboard') }}">
+                <span>🏠</span> Home
+            </a></li>
+            <li><a href="{{ url_for('client_cabins') }}">
+                <span>🏡</span> Browse Cabins
+            </a></li>
+            <li><a href="{{ url_for('client_bookings') }}">
+                <span>📅</span> My Bookings
+            </a></li>
+            <li><a href="{{ url_for('logout') }}">
+                <span>🚪</span> Logout
+            </a></li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <div style="margin-bottom: 20px;">
+            <a href="{{ url_for('cabin_detail', cabin_id=cabin['id']) }}" style="color: #6366f1; text-decoration: none; font-size: 14px;">← Back to Cabin Details</a>
+        </div>
+
+        <h1 style="font-size: 28px; color: #1f2937; margin-bottom: 30px;">Book {{ cabin['name'] }}</h1>
+
+        <div class="grid grid-2" style="gap: 30px;">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Cabin Details</h2>
+                </div>
+                <div class="card-body">
+                    {% if cabin['image_url'] %}
+                    <img src="{{ cabin['image_url'] }}" alt="{{ cabin['name'] }}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 6px; margin-bottom: 15px;">
+                    {% endif %}
+                    <h3 style="font-size: 20px; margin-bottom: 10px;">{{ cabin['name'] }}</h3>
+                    <div style="font-size: 14px; color: #6b7280; margin-bottom: 15px;">
+                        <div>🏷️ Cabin #{{ cabin['cabin_number'] }}</div>
+                        <div>👥 Up to {{ cabin['capacity'] }} guests</div>
+                        <div style="margin-top: 10px; font-size: 24px; font-weight: 700; color: #1f2937;">
+                            ${{ "%.0f"|format(cabin['price_per_night']) }}<span style="font-size: 14px; font-weight: 400;">/night</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>Booking Information</h2>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="bookingForm">
+                        <div class="form-group">
+                            <label for="check_in">Check-in Date</label>
+                            <input type="date" id="check_in" name="check_in" class="form-control" required min="{{ min_checkin }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="check_out">Check-out Date</label>
+                            <input type="date" id="check_out" name="check_out" class="form-control" required min="{{ min_checkout }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="guests">Number of Guests</label>
+                            <input type="number" id="guests" name="guests" class="form-control" min="1" max="{{ cabin['capacity'] }}" value="1" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                                <input type="checkbox" id="breakfast_included" name="breakfast_included" style="width: auto;">
+                                <span>Include breakfast ($15 per person per night)</span>
+                            </label>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="observations">Special Requests / Observations</label>
+                            <textarea id="observations" name="observations" class="form-control" placeholder="I have a gluten allergy and would like to request a gluten-free breakfast."></textarea>
+                        </div>
+
+                        <div style="padding: 20px; background-color: #f9fafb; border-radius: 6px; margin-bottom: 20px;">
+                            <h3 style="font-size: 16px; margin-bottom: 10px;">Booking Summary</h3>
+                            <div style="font-size: 14px; color: #6b7280; margin-bottom: 10px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                    <span>Cabin rate:</span>
+                                    <span id="cabinRate">${{ "%.2f"|format(cabin['price_per_night']) }}/night</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                    <span>Number of nights:</span>
+                                    <span id="numNights">-</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;" id="breakfastRow" style="display: none;">
+                                    <span>Breakfast:</span>
+                                    <span id="breakfastCost">$0.00</span>
+                                </div>
+                            </div>
+                            <div style="border-top: 1px solid #e5e7eb; padding-top: 10px; font-size: 18px; font-weight: 700; display: flex; justify-content: space-between;">
+                                <span>Total:</span>
+                                <span id="totalPrice">-</span>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 16px;">
+                            Confirm Booking
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    const cabinPricePerNight = {{ cabin['price_per_night'] }};
+    const checkInInput = document.getElementById('check_in');
+    const checkOutInput = document.getElementById('check_out');
+    const guestsInput = document.getElementById('guests');
+    const breakfastCheckbox = document.getElementById('breakfast_included');
+
+    function calculateTotal() {
+        const checkIn = new Date(checkInInput.value);
+        const checkOut = new Date(checkOutInput.value);
+        const guests = parseInt(guestsInput.value) || 1;
+        const breakfastIncluded = breakfastCheckbox.checked;
+
+        if (checkIn && checkOut && checkOut > checkIn) {
+            const nights = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
+            const cabinTotal = cabinPricePerNight * nights;
+            const breakfastTotal = breakfastIncluded ? 15 * nights * guests : 0;
+            const total = cabinTotal + breakfastTotal;
+
+            document.getElementById('numNights').textContent = nights;
+            document.getElementById('totalPrice').textContent = '$' + total.toFixed(2);
+            
+            if (breakfastIncluded) {
+                document.getElementById('breakfastRow').style.display = 'flex';
+                document.getElementById('breakfastCost').textContent = '$' + breakfastTotal.toFixed(2);
+            } else {
+                document.getElementById('breakfastRow').style.display = 'none';
+            }
+        }
+    }
+
+    checkInInput.addEventListener('change', function() {
+        const checkIn = new Date(this.value);
+        const minCheckOut = new Date(checkIn);
+        minCheckOut.setDate(minCheckOut.getDate() + 1);
+        checkOutInput.min = minCheckOut.toISOString().split('T')[0];
+        calculateTotal();
+    });
+
+    checkOutInput.addEventListener('change', calculateTotal);
+    guestsInput.addEventListener('input', calculateTotal);
+    breakfastCheckbox.addEventListener('change', calculateTotal);
+</script>
+{% endblock %}

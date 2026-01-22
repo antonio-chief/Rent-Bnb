@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="layout">
+    <aside class="sidebar">
+        <ul class="sidebar-menu">
+            <li><a href="{{ url_for('admin_dashboard') }}">
+                <span>🏠</span> Home
+            </a></li>
+            <li><a href="{{ url_for('admin_bookings') }}" class="active">
+                <span>📅</span> Bookings
+            </a></li>
+            <li><a href="{{ url_for('admin_cabins') }}">
+                <span>🏡</span> Cabins
+            </a></li>
+            <li><a href="{{ url_for('admin_users') }}">
+                <span>👥</span> Users
+            </a></li>
+            <li><a href="{{ url_for('logout') }}">
+                <span>🚪</span> Logout
+            </a></li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <div class="table-container">
+            <div class="table-header">
+                <h2>All bookings</h2>
+                <div style="display: flex; gap: 10px;">
+                    <a href="{{ url_for('admin_bookings', status='all') }}" class="btn btn-{{ 'primary' if status_filter == 'all' else 'secondary' }}" style="padding: 8px 16px; font-size: 13px;">All</a>
+                    <a href="{{ url_for('admin_bookings', status='checked_out') }}" class="btn btn-{{ 'primary' if status_filter == 'checked_out' else 'secondary' }}" style="padding: 8px 16px; font-size: 13px;">Checked out</a>
+                    <a href="{{ url_for('admin_bookings', status='checked_in') }}" class="btn btn-{{ 'primary' if status_filter == 'checked_in' else 'secondary' }}" style="padding: 8px 16px; font-size: 13px;">Checked in</a>
+                    <a href="{{ url_for('admin_bookings', status='unconfirmed') }}" class="btn btn-{{ 'primary' if status_filter == 'unconfirmed' else 'secondary' }}" style="padding: 8px 16px; font-size: 13px;">Unconfirmed</a>
+                </div>
+            </div>
+            
+            {% if bookings %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>CABIN</th>
+                        <th>GUEST</th>
+                        <th>DATES</th>
+                        <th>STATUS</th>
+                        <th>AMOUNT</th>
+                        <th>ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for booking in bookings %}
+                    <tr>
+                        <td>
+                            <div style="font-weight: 600;">{{ booking['cabin_number'] }}</div>
+                            <div style="font-size: 12px; color: #6b7280;">{{ booking['cabin_name'] }}</div>
+                        </td>
+                        <td>
+                            <div>{{ booking['guest_name'] }}</div>
+                            <div style="font-size: 12px; color: #6b7280;">{{ booking['guest_email'] }}</div>
+                        </td>
+                        <td>
+                            <div style="font-size: 13px;">
+                                {% set check_in_date = booking['check_in'].split()[0] if ' ' in booking['check_in'] else booking['check_in'] %}
+                                {% set check_out_date = booking['check_out'].split()[0] if ' ' in booking['check_out'] else booking['check_out'] %}
+                                {{ check_in_date }} → {{ check_out_date }}
+                            </div>
+                            <div style="font-size: 12px; color: #6b7280;">{{ booking['num_nights'] }} night stay</div>
+                        </td>
+                        <td>
+                            <span class="badge badge-{{ booking['status'] }}">
+                                {{ booking['status'].replace('_', ' ').upper() }}
+                            </span>
+                        </td>
+                        <td style="font-weight: 600;">${{ "%.2f"|format(booking['total_price']) }}</td>
+                        <td>
+                            <a href="{{ url_for('admin_booking_detail', booking_id=booking['id']) }}" class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;">View</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div style="padding: 15px 20px; border-top: 1px solid #e5e7eb; font-size: 13px; color: #6b7280;">
+                Showing 1 to {{ bookings|length }} of {{ bookings|length }} results
+            </div>
+            {% else %}
+            <div style="padding: 40px; text-align: center; color: #6b7280;">
+                No bookings found
+            </div>
+            {% endif %}
+        </div>
+    </main>
+</div>
+{% endblock %}
